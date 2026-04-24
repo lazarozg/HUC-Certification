@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUC Certification Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2040;
+    --teal: #00c2a8;
+    --teal2: #00e5cc;
+    --gold: #f5c842;
+    --red: #ff4d6d;
+    --green: #2ecc71;
+    --text: #e8edf5;
+    --muted: #8899aa;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(0,194,168,0.2);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG PATTERN */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(0,194,168,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(245,200,66,0.06) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* SPLASH SCREEN */
+  #splash {
+    position:fixed; inset:0; z-index:100;
+    background: var(--navy);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition: opacity 0.6s ease;
+  }
+  #splash .logo { font-family:'Syne',sans-serif; font-size:clamp(3rem,10vw,7rem); font-weight:800; color:var(--teal); letter-spacing:-3px; line-height:1; }
+  #splash .sub { font-size:1.1rem; color:var(--muted); margin-top:0.5rem; letter-spacing:4px; text-transform:uppercase; }
+  #splash .tagline { font-size:1.3rem; color:var(--text); margin-top:2rem; font-weight:300; text-align:center; max-width:400px; }
+  #splash .start-btn {
+    margin-top:3rem; padding:1rem 3rem; background:var(--teal); color:var(--navy); border:none;
+    font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; border-radius:4px;
+    cursor:pointer; letter-spacing:1px; transition:all 0.2s; text-transform:uppercase;
+  }
+  #splash .start-btn:hover { background:var(--teal2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,194,168,0.4); }
+  #splash .chapters-count { margin-top:1.5rem; color:var(--muted); font-size:0.9rem; }
+
+  /* MAIN APP */
+  #app { display:none; position:relative; z-index:1; }
+
+  /* TOP BAR */
+  #topbar {
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    background:rgba(10,22,40,0.95); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.8rem 2rem; gap:1rem;
+  }
+  #topbar .brand { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; color:var(--teal); letter-spacing:-0.5px; white-space:nowrap; }
+  #progress-bar-wrap { flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden; }
+  #progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--teal),var(--teal2)); border-radius:99px; transition:width 0.5s ease; }
+  #topbar .prog-text { font-size:0.8rem; color:var(--muted); white-space:nowrap; }
+  #menu-btn { background:none; border:1px solid var(--border); color:var(--teal); padding:0.4rem 0.9rem; border-radius:4px; cursor:pointer; font-size:0.85rem; font-family:'Syne',sans-serif; font-weight:600; }
+  #menu-btn:hover { background:var(--border); }
+
+  /* CHAPTER MENU DRAWER */
+  #drawer {
+    position:fixed; top:0; right:-340px; width:320px; height:100vh; z-index:200;
+    background:var(--navy2); border-left:1px solid var(--border);
+    overflow-y:auto; transition:right 0.3s ease; padding:1.5rem;
+  }
+  #drawer.open { right:0; }
+  #drawer h3 { font-family:'Syne',sans-serif; color:var(--teal); margin-bottom:1rem; font-size:1rem; letter-spacing:2px; text-transform:uppercase; }
+  #drawer-close { float:right; background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; }
+  .drawer-chapter {
+    display:flex; align-items:center; gap:0.8rem;
+    padding:0.7rem 0.8rem; border-radius:4px; cursor:pointer;
+    margin-bottom:0.3rem; transition:background 0.15s;
+    border:1px solid transparent;
+  }
+  .drawer-chapter:hover { background:rgba(0,194,168,0.08); border-color:var(--border); }
+  .drawer-chapter.active { background:rgba(0,194,168,0.12); border-color:var(--teal); }
+  .drawer-chapter.completed .dc-num { background:var(--teal); color:var(--navy); }
+  .dc-num { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; font-family:'Syne',sans-serif; flex-shrink:0; }
+  .dc-title { font-size:0.85rem; color:var(--text); line-height:1.3; }
+  #drawer-overlay { display:none; position:fixed; inset:0; z-index:190; background:rgba(0,0,0,0.5); }
+  #drawer-overlay.open { display:block; }
+
+  /* CONTENT AREA */
+  #content {
+    max-width:820px; margin:0 auto;
+    padding:6rem 1.5rem 3rem;
+  }
+
+  /* CHAPTER HEADER */
+  .ch-header {
+    margin-bottom:2.5rem;
+    animation: fadeUp 0.5s ease;
+  }
+  .ch-badge {
+    display:inline-block; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700;
+    color:var(--teal); background:rgba(0,194,168,0.1); border:1px solid var(--border);
+    padding:0.3rem 0.9rem; border-radius:99px; letter-spacing:2px; text-transform:uppercase; margin-bottom:1rem;
+  }
+  .ch-title { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,5vw,2.8rem); font-weight:800; line-height:1.15; color:var(--text); }
+  .ch-title span { color:var(--teal); }
+  .ch-intro { font-size:1.05rem; color:var(--muted); margin-top:1rem; line-height:1.7; font-weight:300; }
+
+  /* SECTION BLOCKS */
+  .section {
+    margin-bottom:2rem;
+    animation: fadeUp 0.5s ease;
+  }
+  .section-title {
+    font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+    color:var(--teal); text-transform:uppercase; letter-spacing:2px;
+    margin-bottom:1rem; display:flex; align-items:center; gap:0.6rem;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  p { font-size:1rem; line-height:1.8; color:var(--text); margin-bottom:1rem; font-weight:300; }
+  p strong { color:var(--teal2); font-weight:500; }
+
+  /* CARDS GRID */
+  .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; margin-bottom:1rem; }
+  .info-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:1.2rem;
+    transition:border-color 0.2s, transform 0.2s;
+  }
+  .info-card:hover { border-color:var(--teal); transform:translateY(-2px); }
+  .info-card .ic-icon { font-size:1.8rem; margin-bottom:0.6rem; }
+  .info-card .ic-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; color:var(--teal2); margin-bottom:0.4rem; }
+  .info-card .ic-text { font-size:0.85rem; color:var(--muted); line-height:1.5; }
+
+  /* TABLE */
+  .styled-table { width:100%; border-collapse:collapse; margin-bottom:1.5rem; }
+  .styled-table th { background:rgba(0,194,168,0.12); color:var(--teal); font-family:'Syne',sans-serif; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; padding:0.7rem 1rem; text-align:left; border-bottom:1px solid var(--border); }
+  .styled-table td { padding:0.7rem 1rem; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; line-height:1.5; }
+  .styled-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .styled-table td:first-child { color:var(--teal2); font-weight:500; }
+
+  /* LIST */
+  .styled-list { list-style:none; margin-bottom:1.5rem; }
+  .styled-list li { padding:0.5rem 0 0.5rem 1.8rem; position:relative; font-size:0.95rem; line-height:1.6; border-bottom:1px solid rgba(255,255,255,0.03); color:var(--text); font-weight:300; }
+  .styled-list li::before { content:'▸'; position:absolute; left:0; color:var(--teal); font-size:0.9rem; }
+
+  /* CALLOUT */
+  .callout {
+    background:rgba(0,194,168,0.07); border-left:3px solid var(--teal);
+    border-radius:0 8px 8px 0; padding:1rem 1.2rem; margin-bottom:1.5rem;
+  }
+  .callout.gold { background:rgba(245,200,66,0.07); border-color:var(--gold); }
+  .callout.red { background:rgba(255,77,109,0.07); border-color:var(--red); }
+  .callout p { margin:0; font-size:0.95rem; }
+  .callout strong { color:var(--gold); }
+  .callout.red strong { color:var(--red); }
+
+  /* QUIZ */
+  .quiz-block {
+    background:linear-gradient(135deg, rgba(0,194,168,0.08), rgba(10,22,40,0.5));
+    border:1px solid var(--teal); border-radius:12px;
+    padding:1.5rem; margin:2rem 0;
+    animation: fadeUp 0.4s ease;
+  }
+  .quiz-badge { font-family:'Syne',sans-serif; font-size:0.7rem; font-weight:700; color:var(--gold); background:rgba(245,200,66,0.1); border:1px solid rgba(245,200,66,0.3); padding:0.25rem 0.7rem; border-radius:99px; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; display:inline-block; }
+  .quiz-q { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:1.2rem; line-height:1.4; }
+  .quiz-options { display:flex; flex-direction:column; gap:0.6rem; }
+  .quiz-opt {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+    border-radius:8px; padding:0.8rem 1.1rem;
+    cursor:pointer; transition:all 0.2s; font-size:0.95rem; text-align:left; color:var(--text);
+    font-family:'DM Sans',sans-serif;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color:var(--teal); background:rgba(0,194,168,0.08); }
+  .quiz-opt.correct { background:rgba(46,204,113,0.15); border-color:var(--green); color:var(--green); }
+  .quiz-opt.wrong { background:rgba(255,77,109,0.12); border-color:var(--red); color:var(--red); }
+  .quiz-opt:disabled { cursor:default; }
+  .quiz-feedback { margin-top:1rem; font-size:0.95rem; font-weight:500; display:none; }
+  .quiz-feedback.show { display:block; animation:fadeUp 0.3s ease; }
+  .quiz-feedback.correct { color:var(--green); }
+  .quiz-feedback.wrong { color:var(--red); }
+
+  /* NAV BUTTONS */
+  .nav-row {
+    display:flex; gap:1rem; justify-content:space-between; align-items:center;
+    margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .btn-nav {
+    padding:0.9rem 2rem; border-radius:6px; font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.95rem; letter-spacing:0.5px; cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; gap:0.6rem; border:none;
+  }
+  .btn-prev { background:rgba(255,255,255,0.06); color:var(--muted); border:1px solid rgba(255,255,255,0.1); }
+  .btn-prev:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+  .btn-next { background:var(--teal); color:var(--navy); }
+  .btn-next:hover { background:var(--teal2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,194,168,0.35); }
+  .btn-next:disabled { opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  /* SUMMARY CARD */
+  .summary-card {
+    background:var(--card); border:1px solid var(--border); border-radius:10px;
+    padding:1.5rem; margin-bottom:2rem;
+  }
+  .summary-card h4 { font-family:'Syne',sans-serif; color:var(--teal); font-size:0.85rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; }
+
+  /* FINAL SCREEN */
+  #final-screen {
+    display:none; text-align:center; padding:4rem 2rem;
+    max-width:700px; margin:0 auto;
+  }
+  #final-screen .big-icon { font-size:5rem; margin-bottom:1.5rem; }
+  #final-screen h1 { font-family:'Syne',sans-serif; font-size:3rem; font-weight:800; color:var(--teal); margin-bottom:1rem; }
+  #final-screen p { font-size:1.1rem; color:var(--muted); margin-bottom:2rem; line-height:1.7; }
+  #final-screen .restart-btn {
+    padding:1rem 2.5rem; background:var(--gold); color:var(--navy); border:none;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; border-radius:6px; cursor:pointer;
+    transition:all 0.2s;
+  }
+  #final-screen .restart-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(245,200,66,0.4); }
+
+  /* SCORE DISPLAY */
+  .score-pill { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(245,200,66,0.1); border:1px solid rgba(245,200,66,0.3); color:var(--gold); font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; padding:0.3rem 0.9rem; border-radius:99px; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* RESPONSIVE */
+  @media(max-width:600px) {
+    #topbar { padding:0.7rem 1rem; }
+    #content { padding:5rem 1rem 2rem; }
+    .ch-title { font-size:1.6rem; }
+    .card-grid { grid-template-columns:1fr; }
+    .nav-row { flex-direction:column; }
+    .btn-nav { width:100%; justify-content:center; }
+  }
+
+  /* HIGHLIGHT TERM */
+  .term { color:var(--teal2); font-weight:500; border-bottom:1px dashed rgba(0,194,168,0.4); cursor:help; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="logo">HUC</div>
+  <div class="sub">Certification Course</div>
+  <div class="tagline">Everything you need to pass your exam and land the job — chapter by chapter.</div>
+  <button class="start-btn" onclick="startCourse()">Start Learning →</button>
+  <div class="chapters-count">15 Chapters · Quizzes Included · Free</div>
+</div>
+
+<!-- DRAWER -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <button id="drawer-close" onclick="closeDrawer()">✕</button>
+  <h3>📚 Chapters</h3>
+  <div id="drawer-list"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="brand">HUC Cert</div>
+    <div id="progress-bar-wrap"><div id="progress-bar-fill" style="width:0%"></div></div>
+    <div class="prog-text" id="prog-text">Ch 1 / 15</div>
+    <div class="score-pill" id="score-pill">⭐ 0 pts</div>
+    <button id="menu-btn" onclick="openDrawer()">Chapters ☰</button>
+  </div>
+
+  <div id="content"></div>
+
+  <div id="final-screen">
+    <div class="big-icon">🏆</div>
+    <h1>Course Complete!</h1>
+    <p>You've finished all 15 chapters of the HUC Certification Course.<br>You're ready to crush that exam and start your career!</p>
+    <div style="margin:1.5rem 0; font-size:1.3rem; color:var(--gold);">Final Score: <strong id="final-score">0</strong> points</div>
+    <button class="restart-btn" onclick="restartCourse()">🔄 Start Over</button>
+  </div>
+</div>
+
+<script>
+// =============================================
+// DATA — ALL 15 CHAPTERS
+// =============================================
+const chapters = [
+
+// CH 1
+{
+  title: "What Is a Health Unit Coordinator?",
+  subtitle: "Your role, your responsibilities, your future",
+  content: `
+    <div class="section">
+      <div class="section-title">Your Role</div>
+      <p>A <strong>Health Unit Coordinator (HUC)</strong> — also called a Unit Secretary, Ward Clerk, or Health Unit Clerk — is the <strong>communication and organizational hub</strong> of a hospital nursing unit. You work at the nurses' station and interact with every person and department in the hospital.</p>
+      <p>Think of yourself as the <strong>air traffic controller</strong> of the unit. Nurses care for patients directly, but YOU coordinate where everything goes, when, and how. Without you, the entire floor falls apart.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Where You Work</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">🏥</div><div class="ic-title">Med/Surg Floors</div><div class="ic-text">General medical and surgical patient care units</div></div>
+        <div class="info-card"><div class="ic-icon">❤️</div><div class="ic-title">ICU / CCU</div><div class="ic-text">Intensive care and cardiac care units</div></div>
+        <div class="info-card"><div class="ic-icon">🚨</div><div class="ic-title">Emergency Dept</div><div class="ic-text">Fast-paced ER environment</div></div>
+        <div class="info-card"><div class="ic-icon">🍼</div><div class="ic-title">OB / Labor & Delivery</div><div class="ic-text">Women's health and maternity units</div></div>
+        <div class="info-card"><div class="ic-icon">🦴</div><div class="ic-title">Orthopedics</div><div class="ic-text">Bone, joint, and surgical recovery</div></div>
+        <div class="info-card"><div class="ic-icon">🧠</div><div class="ic-title">Psych / Rehab</div><div class="ic-text">Mental health and rehabilitation floors</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Your Daily Duties</div>
+      <ul class="styled-list">
+        <li><strong>Process Doctor's Orders</strong> — Your #1 most important job. When a doctor orders labs, X-rays, meds, diets, or procedures — you route them to the right department.</li>
+        <li><strong>Answer Phones & Intercoms</strong> — You are the first voice patients, families, and departments hear. You route calls correctly and professionally.</li>
+        <li><strong>Manage Medical Records</strong> — Organize and maintain patient charts, forms, consents, and all documents.</li>
+        <li><strong>Coordinate ADT (Admissions, Discharges, Transfers)</strong> — Handle all paperwork when a patient arrives, moves, or goes home.</li>
+        <li><strong>Schedule Tests & Procedures</strong> — Enter requests for MRIs, surgeries, echocardiograms, and more.</li>
+        <li><strong>Communicate with Ancillary Departments</strong> — Lab, Pharmacy, Radiology, Dietary, Transport — you talk to everyone.</li>
+        <li><strong>Maintain the Unit</strong> — Track bed availability, order supplies, keep the station organized.</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Key Skills You Need</div>
+      <table class="styled-table">
+        <tr><th>Skill</th><th>Why It Matters</th></tr>
+        <tr><td>Attention to Detail</td><td>One wrong order can harm a patient</td></tr>
+        <tr><td>Multitasking</td><td>5 things happen at once — always</td></tr>
+        <tr><td>Communication</td><td>You talk to everyone, all day long</td></tr>
+        <tr><td>Organization</td><td>Charts, orders, schedules — all simultaneously</td></tr>
+        <tr><td>Calm Under Pressure</td><td>Codes, emergencies, chaos — you stay steady</td></tr>
+        <tr><td>Computer/EHR Skills</td><td>Most hospitals use Electronic Health Records</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Key Terms — Chapter 1</div>
+      <table class="styled-table">
+        <tr><th>Term</th><th>Definition</th></tr>
+        <tr><td>HUC</td><td>Health Unit Coordinator — your job title</td></tr>
+        <tr><td>Nursing Unit</td><td>A floor or department in a hospital</td></tr>
+        <tr><td>ADT</td><td>Admission, Discharge, Transfer — core HUC tasks</td></tr>
+        <tr><td>EHR / EMR</td><td>Electronic Health Record / Electronic Medical Record</td></tr>
+        <tr><td>Census</td><td>The list of all patients on the unit right now</td></tr>
+        <tr><td>Ancillary Departments</td><td>Support departments: Lab, Radiology, Pharmacy, etc.</td></tr>
+        <tr><td>Physician's Orders</td><td>Instructions written or entered by the doctor</td></tr>
+      </table>
+    </div>
+    <div class="callout">
+      <p><strong>Remember:</strong> HUCs do NOT perform clinical tasks — no medications, no wound care, no direct clinical treatment. But your job directly affects patient safety every single day.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "What does ADT stand for in healthcare?", opts: ["Admission, Discharge, Transfer","Advanced Digital Technology","Authorized Doctor Tasks","Acute Drug Treatment"], ans: 0, exp: "ADT = Admission, Discharge, Transfer — three of the HUC's core responsibilities." },
+    { q: "Where does an HUC primarily work?", opts: ["Patient rooms","The pharmacy","The nurses' station","The laboratory"], ans: 2, exp: "HUCs work at the nurses' station — the central communication hub of the unit." },
+    { q: "What is the HUC's #1 most important daily task?", opts: ["Answering phones","Processing doctor's orders","Ordering supplies","Scheduling surgeries"], ans: 1, exp: "Processing physician's orders is the single most critical HUC function — it drives all patient care." }
+  ]
+},
+
+// CH 2
+{
+  title: "Medical Terminology",
+  subtitle: "The language of healthcare — decoded",
+  content: `
+    <div class="section">
+      <div class="section-title">Why It Matters</div>
+      <p>Medical terminology is the <strong>universal language of healthcare</strong>. Every doctor's order, every diagnosis, every chart note uses this language. As an HUC, you must be able to read and understand it — even if you don't define every word, you need to route orders correctly.</p>
+      <p>The good news: medical terms are built from <strong>word parts</strong>. Learn the parts and you can decode almost any term.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">The 4 Building Blocks</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">🔤</div><div class="ic-title">Root Word</div><div class="ic-text">The core meaning. Example: <em>cardi</em> = heart</div></div>
+        <div class="info-card"><div class="ic-icon">⬅️</div><div class="ic-title">Prefix</div><div class="ic-text">Added to the beginning. Example: <em>tachy</em> = fast</div></div>
+        <div class="info-card"><div class="ic-icon">➡️</div><div class="ic-title">Suffix</div><div class="ic-text">Added to the end. Example: <em>-itis</em> = inflammation</div></div>
+        <div class="info-card"><div class="ic-icon">🔗</div><div class="ic-title">Combining Vowel</div><div class="ic-text">Links parts together. Usually "o". Example: <em>cardi/o</em></div></div>
+      </div>
+      <div class="callout">
+        <p><strong>Example:</strong> Tachycardia = <em>tachy</em> (fast) + <em>cardi</em> (heart) + <em>ia</em> (condition) = Fast heart rate ✅</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Prefixes</div>
+      <table class="styled-table">
+        <tr><th>Prefix</th><th>Meaning</th><th>Example</th></tr>
+        <tr><td>tachy-</td><td>fast</td><td>tachycardia (fast heart rate)</td></tr>
+        <tr><td>brady-</td><td>slow</td><td>bradycardia (slow heart rate)</td></tr>
+        <tr><td>hyper-</td><td>above / excessive</td><td>hypertension (high blood pressure)</td></tr>
+        <tr><td>hypo-</td><td>below / deficient</td><td>hypotension (low blood pressure)</td></tr>
+        <tr><td>pre-</td><td>before</td><td>preoperative (before surgery)</td></tr>
+        <tr><td>post-</td><td>after</td><td>postoperative (after surgery)</td></tr>
+        <tr><td>bi-</td><td>two</td><td>bilateral (both sides)</td></tr>
+        <tr><td>dys-</td><td>difficult / painful</td><td>dyspnea (difficulty breathing)</td></tr>
+        <tr><td>a- / an-</td><td>without / absence of</td><td>apnea (no breathing)</td></tr>
+        <tr><td>sub-</td><td>under / below</td><td>subcutaneous (under the skin)</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Suffixes</div>
+      <table class="styled-table">
+        <tr><th>Suffix</th><th>Meaning</th><th>Example</th></tr>
+        <tr><td>-itis</td><td>inflammation</td><td>appendicitis</td></tr>
+        <tr><td>-ectomy</td><td>surgical removal</td><td>appendectomy</td></tr>
+        <tr><td>-oscopy</td><td>visual examination</td><td>colonoscopy</td></tr>
+        <tr><td>-ology</td><td>study of</td><td>cardiology</td></tr>
+        <tr><td>-plasty</td><td>surgical repair</td><td>rhinoplasty</td></tr>
+        <tr><td>-algia</td><td>pain</td><td>neuralgia (nerve pain)</td></tr>
+        <tr><td>-emia</td><td>blood condition</td><td>anemia (low blood)</td></tr>
+        <tr><td>-gram</td><td>record / image</td><td>electrocardiogram</td></tr>
+        <tr><td>-stomy</td><td>new opening</td><td>colostomy</td></tr>
+        <tr><td>-pathy</td><td>disease of</td><td>neuropathy</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Root Words</div>
+      <table class="styled-table">
+        <tr><th>Root</th><th>Meaning</th></tr>
+        <tr><td>cardi/o</td><td>heart</td></tr>
+        <tr><td>pulmon/o</td><td>lung</td></tr>
+        <tr><td>nephr/o</td><td>kidney</td></tr>
+        <tr><td>hepat/o</td><td>liver</td></tr>
+        <tr><td>gastr/o</td><td>stomach</td></tr>
+        <tr><td>neur/o</td><td>nerve</td></tr>
+        <tr><td>oste/o</td><td>bone</td></tr>
+        <tr><td>hem/o</td><td>blood</td></tr>
+        <tr><td>derm/o</td><td>skin</td></tr>
+        <tr><td>arthr/o</td><td>joint</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Abbreviations HUCs Use Daily</div>
+      <table class="styled-table">
+        <tr><th>Abbreviation</th><th>Meaning</th></tr>
+        <tr><td>Dx</td><td>Diagnosis</td></tr>
+        <tr><td>Tx</td><td>Treatment</td></tr>
+        <tr><td>Hx</td><td>History</td></tr>
+        <tr><td>Rx</td><td>Prescription</td></tr>
+        <tr><td>NPO</td><td>Nothing by mouth (no eating/drinking)</td></tr>
+        <tr><td>PRN</td><td>As needed</td></tr>
+        <tr><td>STAT</td><td>Immediately / urgent</td></tr>
+        <tr><td>SOB</td><td>Shortness of breath</td></tr>
+        <tr><td>BP</td><td>Blood pressure</td></tr>
+        <tr><td>HR</td><td>Heart rate</td></tr>
+        <tr><td>O2 Sat</td><td>Oxygen saturation</td></tr>
+        <tr><td>c/o</td><td>Complains of</td></tr>
+        <tr><td>w/</td><td>With</td></tr>
+        <tr><td>s/</td><td>Without</td></tr>
+      </table>
+    </div>
+    <div class="callout gold">
+      <p><strong>Exam Tip:</strong> STAT always means IMMEDIATELY. When you see a STAT order, it takes absolute priority over everything else. Route it first.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "What does the suffix '-ectomy' mean?", opts: ["Inflammation","Surgical removal","Study of","New opening"], ans: 1, exp: "-ectomy = surgical removal. Example: appendectomy = surgical removal of the appendix." },
+    { q: "A doctor writes a STAT order for a chest X-ray. What does STAT mean?", opts: ["Schedule for later today","In the morning","Immediately / urgent","As needed"], ans: 2, exp: "STAT means immediately — drop everything and process it first!" },
+    { q: "Which prefix means 'slow'?", opts: ["tachy-","hyper-","brady-","dys-"], ans: 2, exp: "brady- = slow. Bradycardia = slow heart rate." },
+    { q: "What does NPO stand for?", opts: ["No Patient Orders","Nothing by Prescription Only","Nothing by Mouth","Normal Patient Observation"], ans: 2, exp: "NPO (Nil Per Os) means nothing by mouth — the patient cannot eat or drink anything." }
+  ]
+},
+
+// CH 3
+{
+  title: "Human Body Systems",
+  subtitle: "Anatomy basics every HUC must know",
+  content: `
+    <div class="section">
+      <div class="section-title">Why You Need This</div>
+      <p>You don't need to be a nurse, but you must understand the body well enough to <strong>route orders to the correct department</strong> and understand what the doctor is treating. When a doctor orders a cardiac echo, you need to know that's a heart test going to Cardiology.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">The 11 Body Systems</div>
+      <table class="styled-table">
+        <tr><th>System</th><th>Main Organs</th><th>Function</th></tr>
+        <tr><td>Cardiovascular</td><td>Heart, blood vessels</td><td>Pumps blood throughout body</td></tr>
+        <tr><td>Respiratory</td><td>Lungs, trachea, bronchi</td><td>Brings in oxygen, removes CO2</td></tr>
+        <tr><td>Digestive</td><td>Stomach, intestines, liver</td><td>Breaks down and absorbs food</td></tr>
+        <tr><td>Nervous</td><td>Brain, spinal cord, nerves</td><td>Controls body functions & responses</td></tr>
+        <tr><td>Musculoskeletal</td><td>Muscles, bones, joints</td><td>Movement and support</td></tr>
+        <tr><td>Urinary</td><td>Kidneys, bladder, ureters</td><td>Filters blood, produces urine</td></tr>
+        <tr><td>Endocrine</td><td>Pancreas, thyroid, adrenal glands</td><td>Produces hormones</td></tr>
+        <tr><td>Reproductive</td><td>Ovaries, uterus, testes</td><td>Reproduction</td></tr>
+        <tr><td>Integumentary</td><td>Skin, hair, nails</td><td>Protects body, regulates temperature</td></tr>
+        <tr><td>Lymphatic / Immune</td><td>Lymph nodes, spleen</td><td>Fights infection</td></tr>
+        <tr><td>Special Senses</td><td>Eyes, ears, nose</td><td>Sight, hearing, smell, taste</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Key Conditions HUCs Encounter</div>
+      <table class="styled-table">
+        <tr><th>Condition</th><th>System</th><th>What It Means</th></tr>
+        <tr><td>MI (Myocardial Infarction)</td><td>Cardiovascular</td><td>Heart attack</td></tr>
+        <tr><td>CHF (Congestive Heart Failure)</td><td>Cardiovascular</td><td>Heart can't pump enough blood</td></tr>
+        <tr><td>COPD</td><td>Respiratory</td><td>Chronic obstructive pulmonary disease — blocked airflow</td></tr>
+        <tr><td>Pneumonia</td><td>Respiratory</td><td>Lung infection</td></tr>
+        <tr><td>CVA (Cerebrovascular Accident)</td><td>Nervous</td><td>Stroke — blood flow to brain blocked</td></tr>
+        <tr><td>Diabetes Mellitus</td><td>Endocrine</td><td>Body can't regulate blood sugar</td></tr>
+        <tr><td>UTI</td><td>Urinary</td><td>Urinary tract infection</td></tr>
+        <tr><td>Fracture</td><td>Musculoskeletal</td><td>Broken bone</td></tr>
+        <tr><td>Appendicitis</td><td>Digestive</td><td>Inflamed appendix</td></tr>
+        <tr><td>Sepsis</td><td>Multiple systems</td><td>Life-threatening infection response</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Body Directions & Planes</div>
+      <ul class="styled-list">
+        <li><strong>Anterior / Posterior</strong> — Front / Back of the body</li>
+        <li><strong>Superior / Inferior</strong> — Above / Below</li>
+        <li><strong>Medial / Lateral</strong> — Toward midline / Away from midline</li>
+        <li><strong>Proximal / Distal</strong> — Closer to / Farther from the trunk</li>
+        <li><strong>Bilateral</strong> — Both sides</li>
+        <li><strong>Unilateral</strong> — One side only</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <p><strong>Pro Tip:</strong> Knowing body systems helps you catch errors. If a doctor orders a cardiac enzyme test and it gets sent to Radiology instead of Lab — you can catch that mistake before it delays patient care.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "What does CVA stand for?", opts: ["Cardiac Valve Assessment","Cerebrovascular Accident","Cervical Vein Analysis","Central Ventricular Area"], ans: 1, exp: "CVA = Cerebrovascular Accident — a stroke. Blood flow to the brain is blocked or a vessel ruptures." },
+    { q: "Which body system do the kidneys and bladder belong to?", opts: ["Digestive","Endocrine","Urinary","Lymphatic"], ans: 2, exp: "The kidneys and bladder are part of the Urinary system — they filter blood and produce urine." },
+    { q: "MI stands for what condition?", opts: ["Multiple Infections","Myocardial Infarction","Medial Inflammation","Muscle Injury"], ans: 1, exp: "MI = Myocardial Infarction — a heart attack. Myo = muscle, cardial = heart, infarction = tissue death from lack of blood." }
+  ]
+},
+
+// CH 4
+{
+  title: "Hospital Organization & the Healthcare Team",
+  subtitle: "Who does what — and how you fit in",
+  content: `
+    <div class="section">
+      <div class="section-title">Hospital Structure</div>
+      <p>A hospital is a complex organization with dozens of departments working together. As an HUC, you interact with almost all of them. Understanding who does what helps you route orders, calls, and requests correctly and fast.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Clinical Team Members</div>
+      <table class="styled-table">
+        <tr><th>Title</th><th>Role</th></tr>
+        <tr><td>MD / DO</td><td>Physician (doctor) — diagnoses and prescribes treatment</td></tr>
+        <tr><td>NP (Nurse Practitioner)</td><td>Advanced nurse who can diagnose and prescribe</td></tr>
+        <tr><td>PA (Physician Assistant)</td><td>Works under MD supervision to provide care</td></tr>
+        <tr><td>RN (Registered Nurse)</td><td>Plans and delivers nursing care</td></tr>
+        <tr><td>LVN / LPN</td><td>Licensed Vocational / Practical Nurse — assists RN</td></tr>
+        <tr><td>CNA</td><td>Certified Nursing Assistant — direct patient care tasks</td></tr>
+        <tr><td>HUC / Unit Secretary</td><td>You! Communication and coordination</td></tr>
+        <tr><td>Charge Nurse</td><td>RN who supervises the floor and assigns patients</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Ancillary / Support Departments</div>
+      <table class="styled-table">
+        <tr><th>Department</th><th>What They Do</th><th>When HUC Contacts Them</th></tr>
+        <tr><td>Laboratory (Lab)</td><td>Tests blood, urine, tissue samples</td><td>When ordering blood draws, cultures, urinalysis</td></tr>
+        <tr><td>Radiology / Imaging</td><td>X-rays, CT scans, MRIs, ultrasounds</td><td>When ordering imaging studies</td></tr>
+        <tr><td>Pharmacy</td><td>Prepares and dispenses medications</td><td>When processing medication orders</td></tr>
+        <tr><td>Dietary / Nutrition</td><td>Prepares patient meals and special diets</td><td>When ordering diet changes or NPO status</td></tr>
+        <tr><td>Physical Therapy (PT)</td><td>Helps patients regain movement</td><td>When ordering PT consults</td></tr>
+        <tr><td>Respiratory Therapy (RT)</td><td>Manages breathing treatments</td><td>When ordering nebulizers, oxygen, ventilators</td></tr>
+        <tr><td>Social Work</td><td>Discharge planning, family support</td><td>When requesting social work consults</td></tr>
+        <tr><td>Patient Transport</td><td>Moves patients to/from tests</td><td>When scheduling patient transport</td></tr>
+        <tr><td>Environmental Services (EVS)</td><td>Cleaning, infection control</td><td>When a room needs cleaning after discharge</td></tr>
+        <tr><td>Admissions / Bed Management</td><td>Assigns beds, manages census</td><td>For admissions and transfers</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Chain of Command</div>
+      <p>In a hospital, following the chain of command is critical for patient safety and professional conduct. As an HUC:</p>
+      <ul class="styled-list">
+        <li>Your direct supervisor is typically the <strong>Charge Nurse</strong> or <strong>Nurse Manager</strong></li>
+        <li>Clinical questions always go to the <strong>RN</strong> — never answer medical questions yourself</li>
+        <li>If you receive a verbal order from a doctor, notify the <strong>RN immediately</strong></li>
+        <li>Concerns about patient safety go up the chain immediately — don't wait</li>
+      </ul>
+    </div>
+    <div class="callout red">
+      <p><strong>Important:</strong> HUCs NEVER take verbal orders from physicians independently. If a doctor tells you something, you say: <em>"Let me get your nurse right away."</em> The nurse takes the order.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "An HUC receives a verbal order from a physician over the phone. What should they do?", opts: ["Write it in the chart immediately","Process the order yourself","Notify the RN immediately","Call the pharmacy directly"], ans: 2, exp: "HUCs never take verbal orders. The RN must be notified immediately to take the order." },
+    { q: "Which department handles breathing treatments and ventilators?", opts: ["Physical Therapy","Pharmacy","Respiratory Therapy","Laboratory"], ans: 2, exp: "Respiratory Therapy manages breathing treatments, nebulizers, oxygen therapy, and ventilators." },
+    { q: "What does EVS stand for?", opts: ["Emergency Vital Signs","Electronic Verification System","Environmental Services","Extended Visitation Schedule"], ans: 2, exp: "EVS = Environmental Services — the team responsible for cleaning and infection control in patient rooms." }
+  ]
+},
+
+// CH 5
+{
+  title: "Patient Admission, Transfer & Discharge",
+  subtitle: "ADT — the core flow of every nursing unit",
+  content: `
+    <div class="section">
+      <div class="section-title">The ADT Process</div>
+      <p><strong>ADT</strong> (Admission, Discharge, Transfer) represents the movement of patients through the hospital. The HUC coordinates all the paperwork, notifications, and system entries for each step. This is a major part of your daily work.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Admission Process</div>
+      <p>When a patient is <strong>admitted</strong> to your unit:</p>
+      <ul class="styled-list">
+        <li>Receive notification from Admissions or the Emergency Department</li>
+        <li>Prepare the patient's chart (physical or electronic)</li>
+        <li>Enter patient information into the computer system</li>
+        <li>Print and place required forms (consent, armband info, face sheet)</li>
+        <li>Notify the assigned RN that the patient is arriving</li>
+        <li>Notify ancillary departments (dietary, housekeeping) as needed</li>
+        <li>Ensure the room is ready — contact EVS if needed</li>
+        <li>Process any admission orders written by the physician</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Types of Admissions</div>
+      <table class="styled-table">
+        <tr><th>Type</th><th>Description</th></tr>
+        <tr><td>Elective Admission</td><td>Planned in advance (e.g., scheduled surgery)</td></tr>
+        <tr><td>Emergency Admission</td><td>Unplanned, from ER or urgent situation</td></tr>
+        <tr><td>Direct Admission</td><td>Physician admits patient directly to unit, bypassing ER</td></tr>
+        <tr><td>Observation Status</td><td>Patient monitored but not formally admitted — different billing</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Transfer Process</div>
+      <p>A <strong>transfer</strong> occurs when a patient moves from one unit to another within the hospital (internal), or to another facility (external).</p>
+      <ul class="styled-list">
+        <li><strong>Internal Transfer:</strong> Patient moves from Med/Surg to ICU, for example. HUC notifies receiving unit, updates the system, moves the chart, and notifies transport.</li>
+        <li><strong>External Transfer:</strong> Patient moves to another hospital or rehab facility. HUC prepares transfer paperwork, copies of records, and coordinates transport.</li>
+        <li>Always notify dietary when a patient transfers so meal trays are not sent to the wrong room</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Discharge Process</div>
+      <p>When a patient is <strong>discharged</strong> (goes home or to another facility):</p>
+      <ul class="styled-list">
+        <li>Process the physician's discharge order</li>
+        <li>Prepare the discharge paperwork (instructions, prescriptions, follow-up info)</li>
+        <li>Notify EVS that the room needs to be cleaned (terminal cleaning)</li>
+        <li>Cancel any pending orders (lab draws, dietary trays, therapies)</li>
+        <li>Update the bed board / census to show bed is available</li>
+        <li>File or close out the chart</li>
+        <li>Notify Admissions/Bed Management that a bed is open</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Important Admission Documents</div>
+      <table class="styled-table">
+        <tr><th>Document</th><th>Purpose</th></tr>
+        <tr><td>Face Sheet</td><td>Patient ID info: name, DOB, address, insurance, diagnosis</td></tr>
+        <tr><td>Consent for Treatment</td><td>Patient agrees to general hospital care</td></tr>
+        <tr><td>HIPAA Notice</td><td>Patient informed of their privacy rights</td></tr>
+        <tr><td>Advance Directive</td><td>Patient's wishes for end-of-life care (living will, DNR)</td></tr>
+        <tr><td>Insurance / Financial Forms</td><td>Billing and coverage information</td></tr>
+        <tr><td>Patient ID Armband</td><td>Used for patient identification — critical for safety</td></tr>
+      </table>
+    </div>
+    <div class="callout gold">
+      <p><strong>Exam Tip:</strong> The patient ID armband is critical for patient safety. It is used to verify identity before every procedure, medication, and test. The HUC ensures it is printed and attached during admission.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "When a patient is discharged, which department must be notified to clean the room?", opts: ["Laboratory","Environmental Services (EVS)","Pharmacy","Admissions"], ans: 1, exp: "EVS (Environmental Services) performs 'terminal cleaning' of the room after every discharge so it's ready for the next patient." },
+    { q: "What is an 'Advance Directive'?", opts: ["A STAT order","A patient's end-of-life care wishes (living will, DNR)","An insurance authorization","A transfer form"], ans: 1, exp: "An Advance Directive documents the patient's wishes for care if they cannot speak for themselves — includes DNR (Do Not Resuscitate) orders." },
+    { q: "A patient transferred directly from their doctor's office to the unit without going through the ER — this is called:", opts: ["Emergency admission","Observation status","Direct admission","Elective admission"], ans: 2, exp: "Direct admission = patient admitted straight to the unit by their physician, bypassing the Emergency Department." }
+  ]
+},
+
+// CH 6
+{
+  title: "Doctor's Orders — Reading & Processing",
+  subtitle: "The most critical HUC skill",
+  content: `
+    <div class="section">
+      <div class="section-title">What Are Physician's Orders?</div>
+      <p>A <strong>physician's order</strong> is an instruction written or entered by a doctor, NP, or PA that tells the healthcare team what to do for a patient. Everything that happens to a patient — medications, tests, diets, activities — must have a physician's order behind it.</p>
+      <p>As an HUC, you are responsible for <strong>transcribing and routing</strong> these orders to the correct departments. An error in processing orders can seriously harm a patient.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Types of Orders</div>
+      <table class="styled-table">
+        <tr><th>Order Type</th><th>Description</th></tr>
+        <tr><td>Routine</td><td>Standard, non-urgent order — completed in normal timeframe</td></tr>
+        <tr><td>STAT</td><td>Immediately — must be processed right now, first priority</td></tr>
+        <tr><td>ASAP</td><td>As Soon As Possible — urgent but not quite STAT</td></tr>
+        <tr><td>Standing Order</td><td>Pre-approved protocol for a specific condition (e.g., post-op care)</td></tr>
+        <tr><td>PRN Order</td><td>As needed — given only when specific condition occurs</td></tr>
+        <tr><td>One-time Order</td><td>Given only once, not repeated</td></tr>
+        <tr><td>Recurring / Scheduled</td><td>Given on a set schedule (e.g., every 8 hours)</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Categories of Orders</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">💊</div><div class="ic-title">Medication Orders</div><div class="ic-text">Sent to Pharmacy. Include drug, dose, route, frequency.</div></div>
+        <div class="info-card"><div class="ic-icon">🩸</div><div class="ic-title">Laboratory Orders</div><div class="ic-text">Sent to Lab. Blood draws, urinalysis, cultures, etc.</div></div>
+        <div class="info-card"><div class="ic-icon">📷</div><div class="ic-title">Radiology Orders</div><div class="ic-text">Sent to Imaging. X-ray, CT, MRI, ultrasound.</div></div>
+        <div class="info-card"><div class="ic-icon">🥗</div><div class="ic-title">Dietary Orders</div><div class="ic-text">Sent to Dietary. Diet type, NPO, supplements.</div></div>
+        <div class="info-card"><div class="ic-icon">🏃</div><div class="ic-title">Activity Orders</div><div class="ic-text">Bed rest, ambulate, fall precautions, etc.</div></div>
+        <div class="info-card"><div class="ic-icon">🫁</div><div class="ic-title">Respiratory Orders</div><div class="ic-text">Sent to RT. Oxygen, nebulizers, breathing treatments.</div></div>
+        <div class="info-card"><div class="ic-icon">🧑‍⚕️</div><div class="ic-title">Consult Orders</div><div class="ic-text">Requesting another specialist (cardiologist, PT, social work).</div></div>
+        <div class="info-card"><div class="ic-icon">💉</div><div class="ic-title">IV Fluid Orders</div><div class="ic-text">Type of IV fluid, rate, and duration. Sent to Pharmacy/Nursing.</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Order Processing Steps</div>
+      <ul class="styled-list">
+        <li><strong>Step 1:</strong> Recognize a new order has been written or entered</li>
+        <li><strong>Step 2:</strong> Read the order carefully — identify type, priority, and destination</li>
+        <li><strong>Step 3:</strong> Transcribe (enter into EHR or copy) accurately</li>
+        <li><strong>Step 4:</strong> Route to the correct department (Lab, Pharmacy, Radiology, etc.)</li>
+        <li><strong>Step 5:</strong> Flag for the nurse to co-sign or acknowledge the order</li>
+        <li><strong>Step 6:</strong> Document that the order was processed</li>
+        <li><strong>Step 7:</strong> Follow up if no confirmation received (especially STAT)</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Order Abbreviations</div>
+      <table class="styled-table">
+        <tr><th>Abbreviation</th><th>Meaning</th></tr>
+        <tr><td>QD / QDay</td><td>Once daily</td></tr>
+        <tr><td>BID</td><td>Twice a day</td></tr>
+        <tr><td>TID</td><td>Three times a day</td></tr>
+        <tr><td>QID</td><td>Four times a day</td></tr>
+        <tr><td>Q4H</td><td>Every 4 hours</td></tr>
+        <tr><td>Q8H</td><td>Every 8 hours</td></tr>
+        <tr><td>PO</td><td>By mouth (oral)</td></tr>
+        <tr><td>IV</td><td>Intravenous (into the vein)</td></tr>
+        <tr><td>IM</td><td>Intramuscular (into the muscle)</td></tr>
+        <tr><td>SQ / SC</td><td>Subcutaneous (under the skin)</td></tr>
+        <tr><td>c̄</td><td>With</td></tr>
+        <tr><td>s̄</td><td>Without</td></tr>
+      </table>
+    </div>
+    <div class="callout red">
+      <p><strong>Never guess</strong> on an order. If you cannot read the handwriting or do not understand an order, ask the nurse. A wrong order processed is worse than a delayed one.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "A medication order says 'Metoprolol 25mg PO BID.' How many times per day is this medication given?", opts: ["Once","Twice","Three times","Four times"], ans: 1, exp: "BID = bis in die = twice a day. PO = by mouth." },
+    { q: "You receive a STAT lab order and a routine X-ray order at the same time. What do you process first?", opts: ["The routine X-ray because it was received first","The STAT lab — STAT always has priority","Ask the nurse which one","Process them both at the same time"], ans: 1, exp: "STAT always means immediate priority. Process it before anything else." },
+    { q: "What is a 'standing order'?", opts: ["An order that was cancelled","A pre-approved protocol for a specific condition","An order requiring the patient to stand up","An order placed on hold"], ans: 1, exp: "Standing orders are pre-approved protocols for specific conditions or unit types — they don't need to be written each time." }
+  ]
+},
+
+// CH 7
+{
+  title: "Nursing Unit Communication & Technology",
+  subtitle: "How information moves on the floor",
+  content: `
+    <div class="section">
+      <div class="section-title">Communication Is Your Job</div>
+      <p>More than anything else, an HUC is a <strong>communications specialist</strong>. You are the link between patients, nurses, doctors, and all departments. How you communicate directly affects the quality of care on your floor.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Phone & Intercom Etiquette</div>
+      <ul class="styled-list">
+        <li>Answer within 2–3 rings — always</li>
+        <li>Greeting: <em>"Good morning, 4 West, this is [Name], how can I help you?"</em></li>
+        <li>Identify yourself and your unit every time</li>
+        <li>Never put a caller on hold without asking and getting confirmation</li>
+        <li>Take accurate messages — include caller's name, number, time, and purpose</li>
+        <li>Be professional at ALL times — family members are stressed and scared</li>
+        <li>Never give patient information over the phone without verifying identity (HIPAA)</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Electronic Health Record (EHR)</div>
+      <p>The <strong>EHR</strong> (Electronic Health Record) is the digital system that contains all patient information. Major systems include <strong>Epic, Cerner, Meditech</strong>, and others. At Kaiser Permanente, Epic (KP HealthConnect) is used.</p>
+      <table class="styled-table">
+        <tr><th>EHR Function</th><th>HUC Uses It For</th></tr>
+        <tr><td>Patient Registration</td><td>Enter/update patient demographics</td></tr>
+        <tr><td>Order Entry (CPOE)</td><td>Enter physician orders into the system</td></tr>
+        <tr><td>ADT Module</td><td>Admissions, discharges, transfers, bed management</td></tr>
+        <tr><td>Scheduling</td><td>Book tests, procedures, consultations</td></tr>
+        <tr><td>Messaging</td><td>Communicate with departments within the system</td></tr>
+        <tr><td>Reports</td><td>Print census lists, face sheets, labels</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Communication Tools</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">📟</div><div class="ic-title">Pagers / Beepers</div><div class="ic-text">Still used for doctor notifications in many hospitals</div></div>
+        <div class="info-card"><div class="ic-icon">📱</div><div class="ic-title">Secure Text / Vocera</div><div class="ic-text">HIPAA-compliant messaging apps for staff</div></div>
+        <div class="info-card"><div class="ic-icon">📺</div><div class="ic-title">Call Light System</div><div class="ic-text">Patients press button; HUC answers and routes to nurse</div></tr>
+        <div class="info-card"><div class="ic-icon">🖨️</div><div class="ic-title">Tube System (Pneumatic)</div><div class="ic-text">Sends specimens and meds between floors through tubes</div></div>
+        <div class="info-card"><div class="ic-icon">💻</div><div class="ic-title">Whiteboard / Bed Board</div><div class="ic-text">Tracks patient names, nurses, bed status on the unit</div></div>
+        <div class="info-card"><div class="ic-icon">🔔</div><div class="ic-title">Overhead PA System</div><div class="ic-text">Hospital-wide announcements and code calls</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">SBAR Communication</div>
+      <p>When communicating a concern about a patient — especially to a physician or charge nurse — use the <strong>SBAR format</strong>:</p>
+      <table class="styled-table">
+        <tr><th>Letter</th><th>Stands For</th><th>Example</th></tr>
+        <tr><td>S</td><td>Situation</td><td>"Mr. Smith in Room 412 has a new fever of 102."</td></tr>
+        <tr><td>B</td><td>Background</td><td>"He was admitted yesterday for pneumonia."</td></tr>
+        <tr><td>A</td><td>Assessment</td><td>"His nurse is concerned his condition is worsening."</td></tr>
+        <tr><td>R</td><td>Recommendation</td><td>"She is requesting you come evaluate him."</td></tr>
+      </table>
+    </div>
+    <div class="callout">
+      <p><strong>Remember:</strong> HIPAA applies to everything you hear and say at the nurses' station. Never discuss patient information where others can hear. Never share details over the phone unless identity is verified.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "What does SBAR stand for?", opts: ["Schedule, Brief, Assess, Report","Situation, Background, Assessment, Recommendation","Status, Brief, Action, Result","System, Background, Alert, Response"], ans: 1, exp: "SBAR is a standardized communication tool: Situation, Background, Assessment, Recommendation. It's used when communicating patient concerns to providers." },
+    { q: "A family member calls asking for information about their loved one. What should you do first?", opts: ["Share the information — they're family","Verify their identity first (HIPAA)","Transfer to the nurse without speaking","Hang up"], ans: 1, exp: "HIPAA requires identity verification before sharing any patient information — even with family members." },
+    { q: "Which EHR system is commonly used at Kaiser Permanente?", opts: ["Cerner","Meditech","Epic (KP HealthConnect)","Allscripts"], ans: 2, exp: "Kaiser Permanente uses Epic, branded as KP HealthConnect, across its facilities." }
+  ]
+},
+
+// CH 8
+{
+  title: "Medical Records & Documentation",
+  subtitle: "The patient's legal story — handled by you",
+  content: `
+    <div class="section">
+      <div class="section-title">Why Medical Records Matter</div>
+      <p>The medical record is the <strong>official legal document</strong> of a patient's care. It is used by doctors to plan treatment, by insurance companies for billing, and in court cases as legal evidence. As an HUC, you ensure the record is <strong>complete, organized, and accurate</strong>.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Contents of a Medical Record</div>
+      <ul class="styled-list">
+        <li><strong>Face Sheet</strong> — Patient demographics, insurance, diagnosis</li>
+        <li><strong>Consent Forms</strong> — For treatment, surgery, procedures</li>
+        <li><strong>History & Physical (H&P)</strong> — Doctor's initial assessment</li>
+        <li><strong>Physician's Orders</strong> — All orders written during stay</li>
+        <li><strong>Progress Notes</strong> — Daily notes from doctors, nurses, therapists</li>
+        <li><strong>Lab Reports</strong> — Results of all lab tests</li>
+        <li><strong>Radiology Reports</strong> — Imaging results</li>
+        <li><strong>Medication Administration Record (MAR)</strong> — Every medication given</li>
+        <li><strong>Nursing Notes</strong> — Nursing assessments and interventions</li>
+        <li><strong>Operative Reports</strong> — Details of any surgeries</li>
+        <li><strong>Discharge Summary</strong> — Final summary written by doctor at discharge</li>
+        <li><strong>Advance Directives</strong> — Living will, DNR, healthcare proxy</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Documentation Rules</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">✍️</div><div class="ic-title">Be Accurate</div><div class="ic-text">Record only what actually happened — never guess or assume</div></div>
+        <div class="info-card"><div class="ic-icon">⏱️</div><div class="ic-title">Be Timely</div><div class="ic-text">Document as close to the event as possible</div></div>
+        <div class="info-card"><div class="ic-icon">📌</div><div class="ic-title">Be Complete</div><div class="ic-text">All required fields must be filled — no blanks</div></div>
+        <div class="info-card"><div class="ic-icon">🔏</div><div class="ic-title">No Alterations</div><div class="ic-text">Never erase or white-out; draw a single line through errors</div></div>
+        <div class="info-card"><div class="ic-icon">🖊️</div><div class="ic-title">Sign Everything</div><div class="ic-text">Every entry needs date, time, and signature</div></div>
+        <div class="info-card"><div class="ic-icon">🔒</div><div class="ic-title">Confidential</div><div class="ic-text">Never leave records visible — HIPAA always applies</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">HIPAA — Patient Privacy</div>
+      <p>The <strong>Health Insurance Portability and Accountability Act (HIPAA)</strong> is the federal law protecting patient health information. Violations can result in fines and termination.</p>
+      <table class="styled-table">
+        <tr><th>What's Protected (PHI)</th><th>HIPAA Rules for HUC</th></tr>
+        <tr><td>Patient name</td><td>Never discuss patients in public areas</td></tr>
+        <tr><td>Date of birth</td><td>Log off EHR when leaving the station</td></tr>
+        <tr><td>Diagnosis</td><td>Verify identity before sharing any information</td></tr>
+        <tr><td>Medical record number</td><td>Shred papers with patient info — never trash them</td></tr>
+        <tr><td>Address / phone</td><td>Never share info on social media — ever</td></tr>
+      </table>
+    </div>
+    <div class="callout red">
+      <p><strong>HIPAA Violation Examples:</strong> Telling a friend which celebrity is admitted to your unit. Leaving a patient list visible on the desk. Emailing patient info from your personal email. These are all serious violations.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "What does HIPAA protect?", opts: ["Hospital employee records","Protected Health Information (PHI)","Health insurance company profits","Hospital billing codes"], ans: 1, exp: "HIPAA = Health Insurance Portability and Accountability Act — it protects PHI (Protected Health Information), which includes any information that can identify a patient." },
+    { q: "You make a handwriting error on a paper chart. What is the correct way to fix it?", opts: ["Use white-out to cover it","Erase it completely","Draw a single line through it, write the correction, initial and date","Tear out the page and rewrite it"], ans: 2, exp: "Never erase or white-out medical records. Draw one line through the error, write 'error', add the correction, then initial and date it." },
+    { q: "What does MAR stand for?", opts: ["Medical Assessment Review","Medication Administration Record","Medical Action Report","Mandatory Admission Record"], ans: 1, exp: "MAR = Medication Administration Record — documents every medication given to the patient, by whom, and when." }
+  ]
+},
+
+// CH 9
+{
+  title: "Scheduling Tests, Procedures & Surgeries",
+  subtitle: "Coordinating the patient's care plan",
+  content: `
+    <div class="section">
+      <div class="section-title">The HUC as Scheduler</div>
+      <p>A major part of your role is scheduling tests, procedures, consultations, and surgeries for patients on your unit. This requires coordination with multiple departments and precise communication to ensure patients receive timely care.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Types of Tests You'll Schedule</div>
+      <table class="styled-table">
+        <tr><th>Test / Procedure</th><th>Department</th><th>Key Considerations</th></tr>
+        <tr><td>Blood draw / Lab work</td><td>Laboratory</td><td>Specify tube types, fasting status, STAT vs routine</td></tr>
+        <tr><td>X-Ray</td><td>Radiology</td><td>Portable (bedside) vs. patient goes to dept</td></tr>
+        <tr><td>CT Scan</td><td>Radiology / CT</td><td>Contrast or no contrast? NPO status?</td></tr>
+        <tr><td>MRI</td><td>Radiology / MRI</td><td>Patient has metal implants? Claustrophobia?</td></tr>
+        <tr><td>Ultrasound</td><td>Radiology</td><td>Full bladder needed? Fasting?</td></tr>
+        <tr><td>Echocardiogram</td><td>Cardiology</td><td>Bedside or department</td></tr>
+        <tr><td>EKG / ECG</td><td>Cardiology / Nursing</td><td>Often done at bedside — confirm 12-lead vs other</td></tr>
+        <tr><td>Colonoscopy / Endoscopy</td><td>GI Lab</td><td>Bowel prep required, NPO, consent needed</td></tr>
+        <tr><td>Surgery</td><td>Operating Room (OR)</td><td>Consent required, pre-op orders, NPO</td></tr>
+        <tr><td>Physical Therapy consult</td><td>PT/OT Department</td><td>Specify goals and mobility status</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Pre-Procedure Checklist</div>
+      <p>Before most tests or procedures, the HUC verifies:</p>
+      <ul class="styled-list">
+        <li>✅ Physician's order is written and complete</li>
+        <li>✅ Patient consent is signed (for invasive procedures)</li>
+        <li>✅ Patient is NPO if required</li>
+        <li>✅ Lab values are available if required (e.g., INR before surgery)</li>
+        <li>✅ Allergies are noted in the chart</li>
+        <li>✅ Patient has armband on and is correctly identified</li>
+        <li>✅ Transport has been arranged if patient needs to leave the unit</li>
+        <li>✅ Nurse is aware and patient is prepared</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Surgical Scheduling</div>
+      <p>Scheduling a surgery involves the most steps and coordination:</p>
+      <ul class="styled-list">
+        <li>Receive surgical order from physician</li>
+        <li>Contact OR scheduling to reserve the procedure room and time</li>
+        <li>Ensure surgical consent is signed by the patient</li>
+        <li>Process pre-operative orders (labs, EKG, NPO, IV access, meds to hold)</li>
+        <li>Notify the nurse of the surgery time so pre-op prep can begin</li>
+        <li>Arrange transport to the OR when it's time</li>
+        <li>Communicate any changes in schedule to nursing staff immediately</li>
+      </ul>
+    </div>
+    <div class="callout gold">
+      <p><strong>Key Rule:</strong> Always confirm NPO (nothing by mouth) status for procedures requiring anesthesia or sedation. A patient who eats before surgery can aspirate — this is life-threatening. If there's any question, notify the nurse immediately.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "A patient is scheduled for an MRI. What important safety question should be confirmed before the scan?", opts: ["Has the patient eaten recently?","Does the patient have any metal implants?","Is the patient's blood pressure normal?","Does the patient have insurance?"], ans: 1, exp: "MRI uses powerful magnets — metal implants (pacemakers, certain joint replacements, shrapnel) can cause serious harm. Always confirm this before scheduling." },
+    { q: "NPO before surgery means:", opts: ["No Phone Orders","Normal Post-Op","Nothing by Mouth","No Procedure Oversight"], ans: 2, exp: "NPO = Nil Per Os = Nothing by Mouth. Patients must not eat or drink before procedures requiring anesthesia to prevent aspiration." },
+    { q: "Which document is required before performing an invasive procedure?", opts: ["Insurance card","Patient consent form","Dietary order","Transfer form"], ans: 1, exp: "Informed consent must be signed by the patient before any invasive procedure — it confirms they understand and agree to the risks." }
+  ]
+},
+
+// CH 10
+{
+  title: "Medications & Pharmacy Orders",
+  subtitle: "Understanding what goes to the pharmacy",
+  content: `
+    <div class="section">
+      <div class="section-title">The HUC & Medications</div>
+      <p>The HUC does <strong>NOT</strong> prepare, administer, or handle medications. However, you play a critical role: you process medication orders and route them to the pharmacy. Understanding medication orders helps you catch errors before they reach the patient.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Parts of a Medication Order</div>
+      <p>Every complete medication order must have these 5 elements:</p>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">💊</div><div class="ic-title">Drug Name</div><div class="ic-text">Generic or brand name (e.g., Metoprolol / Lopressor)</div></div>
+        <div class="info-card"><div class="ic-icon">📏</div><div class="ic-title">Dose</div><div class="ic-text">Amount to give (e.g., 25 mg, 500 mL)</div></div>
+        <div class="info-card"><div class="ic-icon">🛣️</div><div class="ic-title">Route</div><div class="ic-text">How it's given (PO, IV, IM, SQ, topical)</div></div>
+        <div class="info-card"><div class="ic-icon">🕐</div><div class="ic-title">Frequency</div><div class="ic-text">How often (BID, TID, Q8H, PRN, STAT)</div></div>
+        <div class="info-card"><div class="ic-icon">✍️</div><div class="ic-title">Prescriber Signature</div><div class="ic-text">Doctor's signature or electronic verification</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Medication Routes</div>
+      <table class="styled-table">
+        <tr><th>Route</th><th>Abbreviation</th><th>Description</th></tr>
+        <tr><td>By mouth (oral)</td><td>PO</td><td>Swallowed — pill, liquid, tablet</td></tr>
+        <tr><td>Intravenous</td><td>IV</td><td>Directly into the vein — fastest action</td></tr>
+        <tr><td>Intramuscular</td><td>IM</td><td>Injected into muscle (e.g., vaccines)</td></tr>
+        <tr><td>Subcutaneous</td><td>SQ / SC</td><td>Under the skin (e.g., insulin)</td></tr>
+        <tr><td>Sublingual</td><td>SL</td><td>Under the tongue — dissolves quickly</td></tr>
+        <tr><td>Topical</td><td>TOP</td><td>Applied to skin (cream, patch, ointment)</td></tr>
+        <tr><td>Inhaled</td><td>INH</td><td>Breathed in (inhaler, nebulizer)</td></tr>
+        <tr><td>Rectal</td><td>PR</td><td>Via rectum (suppository, enema)</td></tr>
+        <tr><td>Nasogastric</td><td>NG</td><td>Through a tube in the nose to the stomach</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Medication Categories</div>
+      <table class="styled-table">
+        <tr><th>Category</th><th>What They Do</th><th>Example</th></tr>
+        <tr><td>Analgesics</td><td>Relieve pain</td><td>Morphine, Tylenol, Toradol</td></tr>
+        <tr><td>Antibiotics</td><td>Fight bacterial infections</td><td>Vancomycin, Cipro, Amoxicillin</td></tr>
+        <tr><td>Anticoagulants</td><td>Prevent blood clots</td><td>Heparin, Warfarin, Eliquis</td></tr>
+        <tr><td>Antihypertensives</td><td>Lower blood pressure</td><td>Metoprolol, Lisinopril, Amlodipine</td></tr>
+        <tr><td>Antidiabetics</td><td>Control blood sugar</td><td>Insulin, Metformin</td></tr>
+        <tr><td>Diuretics</td><td>Increase urine output</td><td>Furosemide (Lasix)</td></tr>
+        <tr><td>Antiemetics</td><td>Stop nausea/vomiting</td><td>Zofran, Phenergan</td></tr>
+        <tr><td>Bronchodilators</td><td>Open airways</td><td>Albuterol, Atrovent</td></tr>
+      </table>
+    </div>
+    <div class="callout red">
+      <p><strong>HIGH ALERT MEDICATIONS</strong> require extra caution when processing. These include: Insulin, Heparin/Anticoagulants, Concentrated Electrolytes, Chemotherapy, and Opioids. If you see these, always notify the nurse.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "A medication order reads: 'Lisinopril 10mg PO QD.' When is this medication given?", opts: ["Every hour","Four times a day","Once daily by mouth","Every 8 hours"], ans: 2, exp: "PO = by mouth, QD = once daily. So: Lisinopril 10mg, taken by mouth, once a day." },
+    { q: "Which route delivers medication fastest?", opts: ["PO (oral)","IM (intramuscular)","SQ (subcutaneous)","IV (intravenous)"], ans: 3, exp: "IV (intravenous) delivers medication directly into the bloodstream — it has the fastest onset of action." },
+    { q: "Furosemide (Lasix) is classified as a:", opts: ["Antibiotic","Analgesic","Diuretic","Bronchodilator"], ans: 2, exp: "Furosemide (Lasix) is a loop diuretic — it increases urine production and is used for fluid overload, CHF, and hypertension." }
+  ]
+},
+
+// CH 11
+{
+  title: "Laboratory Orders & Specimens",
+  subtitle: "Blood, urine, cultures — what gets ordered and why",
+  content: `
+    <div class="section">
+      <div class="section-title">The Lab & the HUC</div>
+      <p>Laboratory tests are among the most commonly ordered tests in a hospital. The HUC processes lab orders, labels specimens, and communicates with the lab about results. Understanding what tests are ordered and why helps you catch errors and prioritize correctly.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Common Lab Tests</div>
+      <table class="styled-table">
+        <tr><th>Test</th><th>What It Measures</th><th>Common Use</th></tr>
+        <tr><td>CBC (Complete Blood Count)</td><td>Red cells, white cells, platelets, hemoglobin</td><td>Infection, anemia, clotting</td></tr>
+        <tr><td>BMP (Basic Metabolic Panel)</td><td>Electrolytes, glucose, kidney function</td><td>Dehydration, kidney disease, diabetes</td></tr>
+        <tr><td>CMP (Comprehensive Metabolic Panel)</td><td>BMP + liver function tests</td><td>Full metabolic picture</td></tr>
+        <tr><td>PT/INR</td><td>Blood clotting time</td><td>Monitor Warfarin (blood thinner)</td></tr>
+        <tr><td>Troponin</td><td>Heart muscle damage marker</td><td>Heart attack diagnosis</td></tr>
+        <tr><td>BNP</td><td>Heart stress marker</td><td>Congestive heart failure</td></tr>
+        <tr><td>Blood Culture</td><td>Bacteria in blood</td><td>Sepsis diagnosis</td></tr>
+        <tr><td>Urinalysis (UA)</td><td>Urine composition</td><td>UTI, kidney disease</td></tr>
+        <tr><td>HbA1c</td><td>3-month blood sugar average</td><td>Diabetes management</td></tr>
+        <tr><td>ABG (Arterial Blood Gas)</td><td>Oxygen, CO2, pH of blood</td><td>Respiratory failure, acid-base balance</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Blood Tube Colors</div>
+      <p>Each colored tube top corresponds to a specific type of test. The HUC needs to know these to label correctly and ensure proper collection.</p>
+      <table class="styled-table">
+        <tr><th>Tube Color</th><th>Additive</th><th>Used For</th></tr>
+        <tr><td>🔴 Red / Gold</td><td>None / Gel separator</td><td>Chemistry tests (BMP, CMP, troponin)</td></tr>
+        <tr><td>🟣 Purple / Lavender</td><td>EDTA</td><td>CBC, blood bank</td></tr>
+        <tr><td>🔵 Blue</td><td>Sodium citrate</td><td>Coagulation (PT/INR, PTT)</td></tr>
+        <tr><td>🟢 Green</td><td>Heparin</td><td>Chemistry, plasma tests</td></tr>
+        <tr><td>⚫ Black</td><td>Sodium citrate</td><td>ESR (sed rate)</td></tr>
+        <tr><td>🟡 Yellow</td><td>ACD</td><td>Blood cultures, DNA testing</td></tr>
+        <tr><td>⚪ Gray</td><td>Sodium fluoride</td><td>Glucose, lactate</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Critical / Panic Values</div>
+      <p>A <strong>critical value</strong> is a lab result so abnormal it could be life-threatening. When the lab calls with a critical value:</p>
+      <ul class="styled-list">
+        <li>Get the nurse to the phone <strong>immediately</strong> — do not take the value yourself</li>
+        <li>Do not put a critical value call on hold</li>
+        <li>Mark the call as urgent so it's documented</li>
+        <li>This is a patient safety event — treat it as one</li>
+      </ul>
+    </div>
+    <div class="callout gold">
+      <p><strong>Exam Tip:</strong> The CBC and BMP are the two most commonly ordered lab panels. Know them inside out. CBC = blood cells. BMP = electrolytes + kidney function + glucose.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "Which lab test is used to monitor a patient taking Warfarin (a blood thinner)?", opts: ["CBC","Troponin","PT/INR","HbA1c"], ans: 2, exp: "PT/INR (Prothrombin Time / International Normalized Ratio) measures clotting time and is used to monitor Warfarin therapy." },
+    { q: "The lab calls with a critical value. What should the HUC do?", opts: ["Take the value and write it in the chart","Put the lab on hold while you find the nurse","Get the nurse to the phone immediately","Call the doctor yourself"], ans: 2, exp: "Critical values are emergencies — get the RN to the phone immediately. HUCs do not take critical values independently." },
+    { q: "Which tube color is used for a CBC (Complete Blood Count)?", opts: ["Red","Blue","Purple/Lavender","Gray"], ans: 2, exp: "Purple/Lavender tubes contain EDTA and are used for CBC, which measures blood cells." }
+  ]
+},
+
+// CH 12
+{
+  title: "Radiology & Diagnostic Imaging Orders",
+  subtitle: "X-rays, CTs, MRIs, and more",
+  content: `
+    <div class="section">
+      <div class="section-title">Radiology & the HUC</div>
+      <p>Radiology (Diagnostic Imaging) is one of the most frequently contacted ancillary departments. You will process imaging orders daily. Understanding the difference between types of studies helps you route them correctly and communicate preparation requirements to nursing staff.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Types of Imaging Studies</div>
+      <table class="styled-table">
+        <tr><th>Study</th><th>Technology</th><th>What It Shows</th><th>Special Prep?</th></tr>
+        <tr><td>X-Ray (Radiograph)</td><td>Radiation</td><td>Bones, lungs, heart size</td><td>Usually none; remove jewelry/metal</td></tr>
+        <tr><td>CT Scan</td><td>X-ray + computer</td><td>Detailed cross-sections of all structures</td><td>Contrast? NPO? Check allergies</td></tr>
+        <tr><td>MRI</td><td>Magnetic fields</td><td>Soft tissue, brain, spinal cord, joints</td><td>No metal; screen for implants</td></tr>
+        <tr><td>Ultrasound</td><td>Sound waves</td><td>Abdominal organs, heart, blood vessels, fetus</td><td>Full bladder or NPO depending on area</td></tr>
+        <tr><td>Nuclear Medicine Scan</td><td>Radioactive tracer</td><td>Organ function (bone, thyroid, heart stress test)</td><td>IV tracer injected, timing required</td></tr>
+        <tr><td>PET Scan</td><td>Radioactive glucose</td><td>Cancer detection, metabolic activity</td><td>NPO, no exercise before scan</td></tr>
+        <tr><td>Fluoroscopy</td><td>Real-time X-ray</td><td>GI tract, swallowing studies, joint injections</td><td>Contrast swallowed or injected</td></tr>
+        <tr><td>Echocardiogram</td><td>Ultrasound</td><td>Heart structure and function</td><td>Usually none for transthoracic echo</td></tr>
+        <tr><td>EKG/ECG</td><td>Electrical signals</td><td>Heart rhythm and electrical activity</td><td>Patient still; electrodes placed</td></tr>
+        <tr><td>Angiogram</td><td>X-ray + contrast dye</td><td>Blood vessels; blockages</td><td>NPO, consent, IV access required</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Portable vs. Department Studies</div>
+      <p>Some imaging can come to the patient; others require the patient to be transported to the radiology department:</p>
+      <ul class="styled-list">
+        <li><strong>Portable X-Ray / Portable Echo:</strong> Machine is brought to the bedside — no transport needed. Often ordered for unstable patients.</li>
+        <li><strong>Department Studies (CT, MRI, PET):</strong> Patient must be transported to Radiology. HUC arranges transport and confirms preparation.</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Contrast Allergy Considerations</div>
+      <div class="callout red">
+        <p><strong>Critical:</strong> Before any CT or imaging with contrast dye, always check for allergies — especially iodine or seafood allergies. Contrast reactions can be life-threatening. If the patient has an allergy, notify the nurse and radiologist immediately before proceeding.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reading Radiology Orders</div>
+      <p>When you receive a radiology order, you need to identify:</p>
+      <ul class="styled-list">
+        <li>Type of study (CT chest vs CT abdomen vs CT head?)</li>
+        <li>With or without contrast</li>
+        <li>Priority (STAT vs routine)</li>
+        <li>Reason / clinical indication (diagnosis code)</li>
+        <li>Patient mobility status (can they go to department or need portable?)</li>
+      </ul>
+    </div>
+  `,
+  quizzes: [
+    { q: "A patient needs a brain MRI. They tell you they have a pacemaker. What should you do?", opts: ["Proceed — pacemakers are fine with MRI","Schedule the MRI as normal","Notify the nurse and radiologist immediately — pacemakers are usually contraindicated for MRI","Just note it in the order and send it anyway"], ans: 2, exp: "Pacemakers contain metal and can malfunction in MRI's magnetic field. Always notify the nurse and radiology before scheduling — the physician must be aware." },
+    { q: "Which imaging study shows detailed cross-sections of all body structures and commonly uses contrast dye?", opts: ["X-Ray","MRI","CT Scan","Ultrasound"], ans: 2, exp: "CT (Computed Tomography) scans produce detailed cross-sectional images and often use IV or oral contrast dye to enhance visibility." },
+    { q: "An unstable ICU patient needs a chest X-ray. Which type should be ordered?", opts: ["Department X-ray — send patient to Radiology","PET scan","Portable X-ray — machine comes to the bedside","MRI"], ans: 2, exp: "Unstable patients should not be transported. A portable (bedside) X-ray brings the machine to the patient." }
+  ]
+},
+
+// CH 13
+{
+  title: "Patient Safety, Infection Control & HIPAA",
+  subtitle: "Keeping patients safe is everyone's responsibility",
+  content: `
+    <div class="section">
+      <div class="section-title">Patient Safety Culture</div>
+      <p>Hospitals follow strict safety protocols to prevent harm to patients. As an HUC, you are part of the <strong>safety team</strong>. You may not provide clinical care, but your accuracy in processing orders, labeling specimens, and communicating information is a critical safety function.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Patient Identification</div>
+      <p>Before any test, procedure, or medication — the patient must be correctly identified. The standard is <strong>Two Patient Identifiers</strong>:</p>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">🏷️</div><div class="ic-title">Full Name</div><div class="ic-text">Ask the patient to state their full name</div></div>
+        <div class="info-card"><div class="ic-icon">🎂</div><div class="ic-title">Date of Birth</div><div class="ic-text">Confirm date of birth verbally</div></div>
+        <div class="info-card"><div class="ic-icon">📋</div><div class="ic-title">Medical Record #</div><div class="ic-text">Match to the chart or armband</div></div>
+        <div class="info-card"><div class="ic-icon">💡</div><div class="ic-title">NEVER use room #</div><div class="ic-text">Room number is NOT an acceptable identifier — patients move!</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Infection Control</div>
+      <p>Infection control prevents the spread of disease in healthcare settings. HUCs must understand and follow these core principles:</p>
+      <table class="styled-table">
+        <tr><th>Concept</th><th>What It Means</th></tr>
+        <tr><td>Hand Hygiene</td><td>Wash hands or use sanitizer before and after touching anything patient-related</td></tr>
+        <tr><td>Standard Precautions</td><td>Treat ALL blood and body fluids as potentially infectious — every patient</td></tr>
+        <tr><td>Contact Precautions</td><td>Gown and gloves required (e.g., MRSA, C. diff). Room is isolated.</td></tr>
+        <tr><td>Droplet Precautions</td><td>Surgical mask required within 3 feet (e.g., flu, strep, COVID)</td></tr>
+        <tr><td>Airborne Precautions</td><td>N95 mask + negative pressure room (e.g., TB, chickenpox, measles)</td></tr>
+        <tr><td>PPE (Personal Protective Equipment)</td><td>Gloves, gown, mask, eye protection — as indicated by precaution level</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Isolation Signs</div>
+      <p>Isolation rooms have colored signs at the door:</p>
+      <ul class="styled-list">
+        <li>🟡 <strong>Yellow:</strong> Contact precautions — gown and gloves</li>
+        <li>🟠 <strong>Orange:</strong> Contact + Droplet — gown, gloves, surgical mask</li>
+        <li>🔴 <strong>Red:</strong> Airborne — N95 mask required, negative pressure room</li>
+      </ul>
+      <p>As HUC, when someone wants to enter an isolation room, remind them of the required PPE posted on the door.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Safety Alerts — The Joint Commission</div>
+      <p>The <strong>Joint Commission (TJC)</strong> accredits hospitals and sets National Patient Safety Goals (NPSGs). Key ones the HUC must know:</p>
+      <ul class="styled-list">
+        <li>Use two patient identifiers before any procedure</li>
+        <li>Improve communication about test results (critical values)</li>
+        <li>Reduce the risk of hospital-acquired infections (hand hygiene!)</li>
+        <li>Prevent falls (fall risk labeling, bed in lowest position)</li>
+        <li>Prevent medication errors (high alert meds, LASA drugs)</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <p><strong>LASA Drugs</strong> = Look-Alike Sound-Alike medications. Example: Hydroxyzine vs Hydralazine. These are common causes of medication errors. Always double-check when you see similar drug names.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "Which type of isolation requires an N95 mask and a negative pressure room?", opts: ["Contact Precautions","Droplet Precautions","Airborne Precautions","Standard Precautions"], ans: 2, exp: "Airborne Precautions are used for diseases spread through tiny particles that remain in the air (TB, measles, chickenpox). Requires N95 mask + negative pressure room." },
+    { q: "A nurse is about to give medication to a patient in Room 412. What is the correct way to identify the patient?", opts: ["Ask 'Are you the patient in Room 412?'","Check the room number on the door","Ask the patient to state their name and date of birth","Look at the face on the patient photo board"], ans: 2, exp: "Two patient identifiers are required — full name AND date of birth (or MRN). Room number is NOT an acceptable identifier." },
+    { q: "What does PPE stand for?", opts: ["Patient Protection Equipment","Personal Protective Equipment","Protective Practice Environment","Procedural Preparation Equipment"], ans: 1, exp: "PPE = Personal Protective Equipment — includes gloves, gown, mask, and eye protection used to protect healthcare workers from infection." }
+  ]
+},
+
+// CH 14
+{
+  title: "Emergency Situations & Hospital Codes",
+  subtitle: "When seconds count — you need to know this",
+  content: `
+    <div class="section">
+      <div class="section-title">Emergency Preparedness</div>
+      <p>Hospitals use a <strong>code system</strong> to communicate emergencies over the PA system without causing panic. As an HUC, you may be responsible for announcing codes or alerting the correct responders. Knowing these codes is critical — your response time can save lives.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Hospital Code System</div>
+      <table class="styled-table">
+        <tr><th>Code</th><th>Emergency Type</th><th>Response</th></tr>
+        <tr><td>🔵 Code Blue</td><td>Cardiac/Respiratory Arrest</td><td>Call for arrest team, bring crash cart</td></tr>
+        <tr><td>🔴 Code Red</td><td>Fire</td><td>RACE / PASS protocol (see below)</td></tr>
+        <tr><td>🟡 Code Yellow</td><td>Bomb Threat</td><td>Do not use phones; follow evacuation plan</td></tr>
+        <tr><td>🔐 Code Silver</td><td>Person with Weapon</td><td>Lockdown; call security immediately</td></tr>
+        <tr><td>🟠 Code Orange</td><td>Hazardous Material Spill</td><td>Contain, isolate, notify safety officer</td></tr>
+        <tr><td>🩷 Code Pink</td><td>Infant/Child Abduction</td><td>Lock down exits; call security</td></tr>
+        <tr><td>🟣 Code Purple</td><td>Pediatric Emergency</td><td>Pediatric crash team responds</td></tr>
+        <tr><td>⚫ Code Black</td><td>Blackout / Power Failure</td><td>Emergency lighting; activate backup</td></tr>
+        <tr><td>🟢 Code Green</td><td>Mass Casualty / Disaster</td><td>Activate disaster plan</td></tr>
+        <tr><td>Code Triage</td><td>External disaster</td><td>Hospital prepares for influx of patients</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Code Blue — Cardiac Arrest</div>
+      <p>This is the most critical emergency. When someone stops breathing or has no pulse:</p>
+      <ul class="styled-list">
+        <li>HUC announces the code over the PA: <em>"Code Blue, Room [#], Code Blue Room [#]"</em></li>
+        <li>Call the emergency number (usually 2222 or 911 depending on hospital)</li>
+        <li>Ensure the code team knows the exact location</li>
+        <li>Clear the hallway for the crash cart and team</li>
+        <li>Keep the phone lines clear — do not use unless emergency</li>
+        <li>Document time of call and who responded</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">Fire Safety — RACE & PASS</div>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">🏃</div><div class="ic-title">R — Rescue</div><div class="ic-text">Remove anyone in immediate danger</div></div>
+        <div class="info-card"><div class="ic-icon">🔔</div><div class="ic-title">A — Alarm</div><div class="ic-text">Pull the fire alarm and call the operator</div></div>
+        <div class="info-card"><div class="ic-icon">🚪</div><div class="ic-title">C — Confine</div><div class="ic-text">Close doors and windows to contain fire</div></div>
+        <div class="info-card"><div class="ic-icon">🚒</div><div class="ic-title">E — Extinguish/Evacuate</div><div class="ic-text">Extinguish if safe; evacuate if not</div></div>
+      </div>
+      <p style="margin-top:1rem;">For using a fire extinguisher, remember <strong>PASS</strong>:</p>
+      <ul class="styled-list">
+        <li><strong>P</strong>ull the pin</li>
+        <li><strong>A</strong>im at the base of the fire</li>
+        <li><strong>S</strong>queeze the handle</li>
+        <li><strong>S</strong>weep side to side</li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-title">DNR — Do Not Resuscitate</div>
+      <p>A <strong>DNR order</strong> means that if the patient stops breathing or their heart stops, the team will NOT attempt CPR or emergency resuscitation. The HUC must:</p>
+      <ul class="styled-list">
+        <li>Ensure the DNR order is properly written and in the chart</li>
+        <li>Flag the chart clearly so nursing staff are aware</li>
+        <li>Never assume — always verify with the nurse before a code is called on a patient</li>
+        <li>Understand that a DNR does NOT mean "do not treat" — the patient still receives full care for other conditions</li>
+      </ul>
+    </div>
+    <div class="callout red">
+      <p><strong>NEVER leave the nurses' station unmanned during a Code Blue.</strong> Someone must stay at the station to answer calls, communicate with responding teams, and manage other patients on the floor.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "Code Blue in a hospital means:", opts: ["Fire emergency","Cardiac/Respiratory Arrest","Bomb threat","Infant abduction"], ans: 1, exp: "Code Blue = Cardiac/Respiratory Arrest. The crash cart is brought and the arrest team responds to attempt resuscitation." },
+    { q: "In a fire emergency, what does the 'R' in RACE stand for?", opts: ["Report","Run","Rescue","Radio"], ans: 2, exp: "RACE = Rescue, Alarm, Confine, Extinguish/Evacuate. R = Rescue anyone in immediate danger first." },
+    { q: "A patient has a DNR order. What does this mean?", opts: ["The patient refuses all medical treatment","If the patient's heart stops, CPR will NOT be performed","The patient is being discharged","The patient cannot receive pain medication"], ans: 1, exp: "DNR = Do Not Resuscitate. If the patient's heart or breathing stops, resuscitation will not be attempted per their wishes. They still receive all other care." }
+  ]
+},
+
+// CH 15
+{
+  title: "Final Exam Review & Career Prep",
+  subtitle: "Everything you need to pass — and then get hired",
+  content: `
+    <div class="section">
+      <div class="section-title">About the HUC Certification Exam</div>
+      <p>The two main certifying bodies are:</p>
+      <div class="card-grid">
+        <div class="info-card"><div class="ic-icon">🎓</div><div class="ic-title">NAHUC</div><div class="ic-text">National Association of Health Unit Coordinators — offers the CHUC exam (Certified Health Unit Coordinator)</div></div>
+        <div class="info-card"><div class="ic-icon">🏅</div><div class="ic-title">NHA</div><div class="ic-text">National Healthcareer Association — offers the CBCS / clinical admin exams recognized at many employers</div></div>
+      </div>
+      <p>The NAHUC CHUC exam typically covers: medical terminology, anatomy, documentation, order processing, communication, patient safety, and ethics.</p>
+    </div>
+    <div class="section">
+      <div class="section-title">Master Review — Key Facts</div>
+      <table class="styled-table">
+        <tr><th>Topic</th><th>Must Know</th></tr>
+        <tr><td>ADT</td><td>Admission, Discharge, Transfer — the core HUC workflow</td></tr>
+        <tr><td>STAT</td><td>Immediately — always first priority</td></tr>
+        <tr><td>NPO</td><td>Nothing by mouth — critical for pre-procedure safety</td></tr>
+        <tr><td>HIPAA</td><td>Federal privacy law — protects all PHI</td></tr>
+        <tr><td>Two Patient Identifiers</td><td>Name + DOB or MRN — never room number</td></tr>
+        <tr><td>Code Blue</td><td>Cardiac/Respiratory arrest — call crash team</td></tr>
+        <tr><td>Chain of Command</td><td>HUC → Charge Nurse → Nurse Manager → Administration</td></tr>
+        <tr><td>Verbal Orders</td><td>HUC never takes verbal orders — always get the RN</td></tr>
+        <tr><td>Critical Lab Value</td><td>Get the RN to the phone immediately</td></tr>
+        <tr><td>CBC</td><td>Complete Blood Count — measures blood cells</td></tr>
+        <tr><td>BMP</td><td>Basic Metabolic Panel — electrolytes, kidney, glucose</td></tr>
+        <tr><td>RACE</td><td>Rescue, Alarm, Confine, Extinguish/Evacuate (Fire)</td></tr>
+        <tr><td>SBAR</td><td>Situation, Background, Assessment, Recommendation</td></tr>
+        <tr><td>DNR</td><td>Do Not Resuscitate — written order, must be in chart</td></tr>
+        <tr><td>LASA</td><td>Look-Alike Sound-Alike drugs — common cause of errors</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Medical Terminology Quick Reference</div>
+      <table class="styled-table">
+        <tr><th>Term</th><th>Meaning</th></tr>
+        <tr><td>Tachycardia</td><td>Fast heart rate (&gt;100 bpm)</td></tr>
+        <tr><td>Bradycardia</td><td>Slow heart rate (&lt;60 bpm)</td></tr>
+        <tr><td>Hypertension</td><td>High blood pressure</td></tr>
+        <tr><td>Dyspnea</td><td>Difficulty breathing</td></tr>
+        <tr><td>Edema</td><td>Swelling due to fluid buildup</td></tr>
+        <tr><td>Diuresis</td><td>Increased urine production</td></tr>
+        <tr><td>Febrile</td><td>Having a fever</td></tr>
+        <tr><td>Afebrile</td><td>Without fever</td></tr>
+        <tr><td>Acute</td><td>Sudden onset, short duration</td></tr>
+        <tr><td>Chronic</td><td>Long-lasting condition</td></tr>
+        <tr><td>Benign</td><td>Not cancerous</td></tr>
+        <tr><td>Malignant</td><td>Cancerous</td></tr>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Getting the Job — Tips</div>
+      <ul class="styled-list">
+        <li>Get certified first — CHUC or NHA certification gives you a huge edge</li>
+        <li>Highlight your organizational and communication skills in your resume</li>
+        <li>Mention any healthcare experience — even EVS, dietary, or CNA work counts</li>
+        <li>Be specific: "Processed physician orders in EHR (Epic)" is better than "did computer work"</li>
+        <li>Prepare for behavioral questions: "Tell me about a time you handled multiple tasks at once"</li>
+        <li>Know HIPAA cold — employers always ask about it</li>
+        <li>Express your passion for patient safety — that's what the job is truly about</li>
+        <li>Union employees (like OPEIU Local 30) may have internal posting advantages — check your CBA!</li>
+      </ul>
+    </div>
+    <div class="callout gold">
+      <p><strong>You've Got This!</strong> You've just completed a full HUC certification course. Review your weak areas, retake the chapter quizzes, and keep practicing. The exam rewards people who understand the WHY behind the rules — not just the memorized answers.</p>
+    </div>
+  `,
+  quizzes: [
+    { q: "Which organization offers the CHUC (Certified Health Unit Coordinator) certification?", opts: ["NHA","Joint Commission","NAHUC","OSHA"], ans: 2, exp: "NAHUC = National Association of Health Unit Coordinators. They offer the CHUC certification exam specifically designed for Health Unit Coordinators." },
+    { q: "When a patient asks you a question about their diagnosis, you should:", opts: ["Answer from what you know","Tell them to look it up online","Direct them to their nurse or physician","Read from the chart to them"], ans: 2, exp: "HUCs are not licensed to answer clinical or medical questions. Always refer the patient to their nurse or physician — that's the professional and safe thing to do." },
+    { q: "Which combination correctly identifies a patient?", opts: ["Room number + name","Name + Date of Birth","Name + nurse's name","Bed number + diagnosis"], ans: 1, exp: "Two acceptable patient identifiers: Full name + Date of Birth (or MRN). Room number is NEVER used — patients move and mix-ups happen." },
+    { q: "What is the main purpose of the HUC role?", opts: ["To provide direct patient clinical care","To serve as the communication and organizational hub of the nursing unit","To replace nurses when they are busy","To manage the hospital budget"], ans: 1, exp: "The HUC is the communication and organizational center of the nursing unit — processing orders, coordinating departments, managing records, and supporting the care team." }
+  ]
+}
+
+]; // end chapters array
+
+// =============================================
+// STATE
+// =============================================
+let currentChapter = 0;
+let totalScore = 0;
+let completedChapters = new Set();
+let quizAnswered = {}; // {chapterIdx: {quizIdx: bool}}
+
+// =============================================
+// INIT
+// =============================================
+function startCourse() {
+  document.getElementById('splash').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    buildDrawer();
+    renderChapter(0);
+  }, 600);
+}
+
+function buildDrawer() {
+  const list = document.getElementById('drawer-list');
+  list.innerHTML = chapters.map((ch, i) => `
+    <div class="drawer-chapter ${i === currentChapter ? 'active' : ''} ${completedChapters.has(i) ? 'completed' : ''}" onclick="goToChapter(${i})" id="dc-${i}">
+      <div class="dc-num">${completedChapters.has(i) ? '✓' : i + 1}</div>
+      <div class="dc-title">${ch.title}</div>
+    </div>
+  `).join('');
+}
+
+function updateDrawer() {
+  chapters.forEach((ch, i) => {
+    const el = document.getElementById(`dc-${i}`);
+    if (!el) return;
+    el.className = `drawer-chapter ${i === currentChapter ? 'active' : ''} ${completedChapters.has(i) ? 'completed' : ''}`;
+    el.querySelector('.dc-num').textContent = completedChapters.has(i) ? '✓' : i + 1;
+  });
+}
+
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
+function goToChapter(i) {
+  closeDrawer();
+  renderChapter(i);
+}
+
+// =============================================
+// RENDER
+// =============================================
+function renderChapter(idx) {
+  currentChapter = idx;
+  const ch = chapters[idx];
+  const content = document.getElementById('content');
+  const finalScreen = document.getElementById('final-screen');
+  finalScreen.style.display = 'none';
+  content.style.display = 'block';
+
+  // Build quiz HTML blocks (interleaved at intervals)
+  let quizHTML = '';
+  if (ch.quizzes && ch.quizzes.length > 0) {
+    quizHTML = ch.quizzes.map((q, qi) => buildQuizHTML(idx, qi, q)).join('');
+  }
+
+  // Interleave: insert first quiz after main content, rest spread
+  const splitContent = ch.content;
+
+  content.innerHTML = `
+    <div class="ch-header">
+      <div class="ch-badge">Chapter ${idx + 1} of ${chapters.length}</div>
+      <h1 class="ch-title">${ch.title}</h1>
+      <p class="ch-intro">${ch.subtitle}</p>
+    </div>
+    ${splitContent}
+    ${quizHTML}
+    <div class="nav-row">
+      ${idx > 0 ? `<button class="btn-nav btn-prev" onclick="prevChapter()">← Previous</button>` : `<div></div>`}
+      ${idx < chapters.length - 1
+        ? `<button class="btn-nav btn-next" onclick="nextChapter()" id="btn-next-main">Next Chapter →</button>`
+        : `<button class="btn-nav btn-next" onclick="showFinal()" id="btn-next-main">🎓 Complete Course</button>`
+      }
+    </div>
+  `;
+
+  // Restore quiz states if revisiting
+  restoreQuizStates(idx);
+
+  // Update progress
+  updateProgress();
+  updateDrawer();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildQuizHTML(chIdx, qIdx, q) {
+  return `
+    <div class="quiz-block" id="quiz-${chIdx}-${qIdx}">
+      <div class="quiz-badge">🧠 Quick Check</div>
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((opt, oi) => `
+          <button class="quiz-opt" onclick="answerQuiz(${chIdx}, ${qIdx}, ${oi})" id="qopt-${chIdx}-${qIdx}-${oi}">
+            ${String.fromCharCode(65 + oi)}. ${opt}
+          </button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="qfb-${chIdx}-${qIdx}"></div>
+    </div>
+  `;
+}
+
+function answerQuiz(chIdx, qIdx, selectedOpt) {
+  if (!quizAnswered[chIdx]) quizAnswered[chIdx] = {};
+  if (quizAnswered[chIdx][qIdx] !== undefined) return; // already answered
+
+  const q = chapters[chIdx].quizzes[qIdx];
+  const isCorrect = selectedOpt === q.ans;
+  quizAnswered[chIdx][qIdx] = isCorrect;
+
+  if (isCorrect) {
+    totalScore += 10;
+    document.getElementById('score-pill').textContent = `⭐ ${totalScore} pts`;
+  }
+
+  // Disable all options, color correct/wrong
+  q.opts.forEach((_, oi) => {
+    const btn = document.getElementById(`qopt-${chIdx}-${qIdx}-${oi}`);
+    if (!btn) return;
+    btn.disabled = true;
+    if (oi === q.ans) btn.classList.add('correct');
+    else if (oi === selectedOpt) btn.classList.add('wrong');
+  });
+
+  // Show feedback
+  const fb = document.getElementById(`qfb-${chIdx}-${qIdx}`);
+  fb.textContent = isCorrect
+    ? `✅ Correct! ${q.exp}`
+    : `❌ Not quite. ${q.exp}`;
+  fb.className = `quiz-feedback show ${isCorrect ? 'correct' : 'wrong'}`;
+}
+
+function restoreQuizStates(chIdx) {
+  if (!quizAnswered[chIdx]) return;
+  const ch = chapters[chIdx];
+  ch.quizzes.forEach((q, qIdx) => {
+    const answered = quizAnswered[chIdx][qIdx];
+    if (answered === undefined) return;
+    q.opts.forEach((_, oi) => {
+      const btn = document.getElementById(`qopt-${chIdx}-${qIdx}-${oi}`);
+      if (!btn) return;
+      btn.disabled = true;
+      if (oi === q.ans) btn.classList.add('correct');
+    });
+    const fb = document.getElementById(`qfb-${chIdx}-${qIdx}`);
+    if (fb) {
+      fb.textContent = answered ? `✅ Correct! ${q.exp}` : `❌ Not quite. ${q.exp}`;
+      fb.className = `quiz-feedback show ${answered ? 'correct' : 'wrong'}`;
+    }
+  });
+}
+
+function nextChapter() {
+  completedChapters.add(currentChapter);
+  if (currentChapter < chapters.length - 1) {
+    renderChapter(currentChapter + 1);
+  }
+}
+
+function prevChapter() {
+  if (currentChapter > 0) renderChapter(currentChapter - 1);
+}
+
+function showFinal() {
+  completedChapters.add(currentChapter);
+  document.getElementById('content').style.display = 'none';
+  const fs = document.getElementById('final-screen');
+  fs.style.display = 'block';
+  document.getElementById('final-score').textContent = totalScore;
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restartCourse() {
+  currentChapter = 0;
+  totalScore = 0;
+  completedChapters = new Set();
+  quizAnswered = {};
+  document.getElementById('score-pill').textContent = '⭐ 0 pts';
+  document.getElementById('final-screen').style.display = 'none';
+  buildDrawer();
+  renderChapter(0);
+}
+
+function updateProgress() {
+  const pct = Math.round((completedChapters.size / chapters.length) * 100);
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `Ch ${currentChapter + 1} / ${chapters.length}`;
+}
+</script>
+</body>
+</html>
